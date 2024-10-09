@@ -21,95 +21,85 @@ namespace DataAccess.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // One-to-Many: User has many Invoices
-            modelBuilder
-                .Entity<InvoiceEntity>()
-                .HasOne(i => i.User)
-                .WithMany(u => u.Invoices)
-                .HasForeignKey(i => i.UserId);
+            // User configurations
+            modelBuilder.Entity<UserEntity>(user =>
+            {
+                user.HasMany(u => u.Invoices).WithOne(i => i.User).HasForeignKey(i => i.UserId);
 
-            // One-to-Many: Invoice has many InvoiceItems
-            modelBuilder
-                .Entity<InvoiceItemEntity>()
-                .HasOne(ii => ii.Invoice)
-                .WithMany(i => i.InvoiceItems)
-                .HasForeignKey(ii => ii.InvoiceId);
+                user.HasMany(u => u.Expenses).WithOne(e => e.User).HasForeignKey(e => e.UserId);
 
-            // One-to-Many: User has many Expenses
-            modelBuilder
-                .Entity<ExpenseEntity>()
-                .HasOne(e => e.User)
-                .WithMany(u => u.Expenses)
-                .HasForeignKey(e => e.UserId);
+                // GUID configurations
+                user.Property(u => u.Id).ValueGeneratedOnAdd();
+            });
 
-            // One-to-Many: Expense has many ExpenseItems
-            modelBuilder
-                .Entity<ExpenseItemEntity>()
-                .HasOne(ei => ei.Expense)
-                .WithMany(e => e.ExpenseItems)
-                .HasForeignKey(ei => ei.ExpenseId);
+            // Invoice configurations
+            modelBuilder.Entity<InvoiceEntity>(invoice =>
+            {
+                invoice
+                    .HasMany(i => i.InvoiceItems)
+                    .WithOne(ii => ii.Invoice)
+                    .HasForeignKey(ii => ii.InvoiceId);
 
-            // Decimal properties configuration (removing Column(TypeName))
-            modelBuilder
-                .Entity<InvoiceEntity>()
-                .Property(i => i.AmountTendered)
-                .HasColumnType("decimal(18,2)");
+                invoice.Property(i => i.InvoiceDate).IsRequired();
+                invoice.Property(i => i.AmountTendered).HasColumnType("decimal(18,2)");
+                invoice.Property(i => i.TotalPrice).HasColumnType("decimal(18,2)");
+                invoice.Property(i => i.TotalDiscountedPrice).HasColumnType("decimal(18,2)");
+                invoice.Property(i => i.IsVoided).HasDefaultValue(false);
 
-            modelBuilder
-                .Entity<InvoiceEntity>()
-                .Property(i => i.TotalPrice)
-                .HasColumnType("decimal(18,2)");
+                // GUID configurations
+                invoice.Property(i => i.Id).ValueGeneratedOnAdd();
+                invoice.Property(i => i.UserId).ValueGeneratedNever();
+            });
 
-            modelBuilder
-                .Entity<InvoiceEntity>()
-                .Property(i => i.TotalDiscountedPrice)
-                .HasColumnType("decimal(18,2)");
+            // InvoiceItem configurations
+            modelBuilder.Entity<InvoiceItemEntity>(invoiceItem =>
+            {
+                invoiceItem.Property(ii => ii.ItemPrice).HasColumnType("decimal(18,2)");
+                invoiceItem.Property(ii => ii.DiscountedPrice).HasColumnType("decimal(18,2)");
 
-            modelBuilder
-                .Entity<InvoiceItemEntity>()
-                .Property(ii => ii.ItemPrice)
-                .HasColumnType("decimal(18,2)");
+                // GUID configurations
+                invoiceItem.Property(ii => ii.Id).ValueGeneratedOnAdd();
+                invoiceItem.Property(ii => ii.InvoiceId).ValueGeneratedNever();
+            });
 
-            modelBuilder
-                .Entity<InvoiceItemEntity>()
-                .Property(ii => ii.DiscountedPrice)
-                .HasColumnType("decimal(18,2)");
+            // Expense configurations
+            modelBuilder.Entity<ExpenseEntity>(expense =>
+            {
+                expense
+                    .HasMany(e => e.ExpenseItems)
+                    .WithOne(ei => ei.Expense)
+                    .HasForeignKey(ei => ei.ExpenseId);
 
-            modelBuilder
-                .Entity<ExpenseEntity>()
-                .Property(e => e.TotalCost)
-                .HasColumnType("decimal(18,2)");
+                expense.Property(e => e.TotalCost).HasColumnType("decimal(18,2)");
+                expense.Property(e => e.ExpenseDate).IsRequired();
 
-            modelBuilder
-                .Entity<ExpenseItemEntity>()
-                .Property(ei => ei.Amount)
-                .HasColumnType("decimal(18,2)");
+                // GUID configurations
+                expense.Property(e => e.Id).ValueGeneratedOnAdd();
+                expense.Property(e => e.UserId).ValueGeneratedNever();
+            });
 
-            //Guid configs
-            modelBuilder.Entity<UserEntity>().Property(u => u.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<InvoiceEntity>().Property(i => i.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<InvoiceEntity>().Property(i => i.UserId).ValueGeneratedNever();
-            modelBuilder.Entity<InvoiceItemEntity>().Property(ii => ii.Id).ValueGeneratedOnAdd();
-            modelBuilder
-                .Entity<InvoiceItemEntity>()
-                .Property(ii => ii.InvoiceId)
-                .ValueGeneratedNever();
-            modelBuilder.Entity<ExpenseEntity>().Property(e => e.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<ExpenseEntity>().Property(e => e.UserId).ValueGeneratedNever();
-            modelBuilder.Entity<ExpenseItemEntity>().Property(ei => ei.Id).ValueGeneratedOnAdd();
+            // ExpenseItem configurations
+            modelBuilder.Entity<ExpenseItemEntity>(expenseItem =>
+            {
+                expenseItem.Property(ei => ei.Amount).HasColumnType("decimal(18,2)");
 
-            modelBuilder
-                .Entity<ExpenseItemEntity>()
-                .Property(ei => ei.ExpenseId)
-                .ValueGeneratedNever();
+                // GUID configurations
+                expenseItem.Property(ei => ei.Id).ValueGeneratedOnAdd();
+                expenseItem.Property(ei => ei.ExpenseId).ValueGeneratedNever();
+            });
 
-            // Default values for specific properties
-            modelBuilder.Entity<InvoiceEntity>().Property(i => i.IsVoided).HasDefaultValue(false);
-            modelBuilder.Entity<ItemEntity>().Property(i => i.Wholesale).HasDefaultValue(0.0m);
-            modelBuilder.Entity<ItemEntity>().Property(i => i.Retail).HasDefaultValue(0.0m);
-            modelBuilder.Entity<ItemEntity>().Property(i => i.Stock).HasDefaultValue(0);
-            modelBuilder.Entity<ItemEntity>().Property(i => i.LowThreshold).HasDefaultValue(0);
-            modelBuilder.Entity<ItemEntity>().Property(i => i.HasExpiry).HasDefaultValue(false);
+            // Item configurations
+            modelBuilder.Entity<ItemEntity>(item =>
+            {
+                item.Property(i => i.Wholesale).HasDefaultValue(0.0m);
+                item.Property(i => i.Retail).HasDefaultValue(0.0m);
+                item.Property(i => i.Stock).HasDefaultValue(0);
+                item.Property(i => i.LowThreshold).HasDefaultValue(0);
+                item.Property(i => i.HasExpiry).HasDefaultValue(false);
+
+                // GUID configurations
+                item.Property(i => i.Id).ValueGeneratedOnAdd();
+            });
         }
     }
 }

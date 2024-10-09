@@ -1,38 +1,35 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using API.Data;
+using API.Extensions;
 using API.Models;
+using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace API.Services
 {
-    public class UserService
+    public class UserService(ApiDbContext context)
     {
-        private readonly ApiDbContext _context;
+        private readonly ApiDbContext _context = context;
 
-        public UserService(ApiDbContext context)
+        public async Task CreateUserAsync(UserModel userModel)
         {
-            _context = context;
-        }
-
-        // Create a new user
-        public async Task<UserModel> CreateUserAsync(UserModel userModel)
-        {
-            // Perform any necessary validation or checks here
-
             await _context.Users.AddAsync(userModel);
             await _context.SaveChangesAsync();
-            return userModel;
+            return;
         }
 
-        // Login a user
         public async Task<UserModel?> LoginAsync(string email, string password)
         {
-            // You might want to hash the password before comparing
+            var hashedPass = password.HashPassword();
             return await _context.Users.FirstOrDefaultAsync(u =>
                 u.Email == email && u.Password == password
             );
         }
 
-        // Delete a user by ID
         public async Task<bool> DeleteUserAsync(Guid UserId)
         {
             var user = await _context.Users.FindAsync(UserId);
@@ -44,10 +41,33 @@ namespace API.Services
             return true;
         }
 
-        // Get a user by ID
         public async Task<UserModel?> GetUserAsync(Guid UserId)
         {
             return await _context.Users.FindAsync(UserId);
+        }
+
+        private static string GenerateJwtToken(UserModel user)
+        {
+            var key = Encoding.ASCII.GetBytes(
+                DotNetEnv.Env.GetString("JWT_SECRET") ?? "default_strengamabobs"
+            );
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(
+                    [new Claim(ClaimTypes.Name, user.Email), new Claim(ClaimTypes.Role, "User")]
+                ),
+                Expires = DateTime.UtcNow.AddHours(10),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature
+                ),
+                Issuer = DotNetEnv.Env.GetString("JWT_ISSUER"),
+                Audience = DotNetEnv.Env.GetString("JWT_AUDIENCE"),
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }
