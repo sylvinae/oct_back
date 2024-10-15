@@ -4,7 +4,7 @@ namespace DataAccess.Entities
     {
         public Guid Id { get; set; }
 
-        public int? Barcode { get; set; }
+        public string? Barcode { get; set; }
         public string? Brand { get; set; }
         public string? Generic { get; set; }
         public string? Classification { get; set; }

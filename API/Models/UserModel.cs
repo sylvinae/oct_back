@@ -1,5 +1,6 @@
 using API.Models.Expense;
 using API.Models.Invoice;
+using API.Utils;
 using Newtonsoft.Json;
 
 namespace API.Models
@@ -22,6 +23,7 @@ namespace API.Models
         public required string Email { get; set; }
 
         [JsonProperty("password")]
+        [JsonIgnoreIfEmpty]
         public required string Password { get; set; }
 
         [JsonProperty("role")]
@@ -30,7 +32,10 @@ namespace API.Models
         [JsonIgnore]
         public bool IsDeleted { get; set; }
 
+        [JsonIgnoreIfEmpty]
         public ICollection<InvoiceModel> Invoices { get; set; } = [];
+
+        [JsonIgnoreIfEmpty]
         public ICollection<ExpenseModel> Expenses { get; set; } = [];
     }
 }

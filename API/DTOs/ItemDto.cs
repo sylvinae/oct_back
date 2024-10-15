@@ -1,12 +1,10 @@
+using API.Utils;
 using Newtonsoft.Json;
 
-namespace API.Models
+namespace API.DTOs
 {
-    public class ItemModel
+    public class ItemDto
     {
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-
         [JsonProperty("barcode")]
         public string? Barcode { get; set; }
 
@@ -47,18 +45,29 @@ namespace API.Models
         public string? Expiry { get; set; }
 
         [JsonProperty("isReagent")]
+        [JsonIgnoreIfEmpty]
         public bool IsReagent { get; set; }
 
         [JsonProperty("usesLeft")]
+        [JsonIgnoreIfEmpty]
         public int? UsesLeft { get; set; }
 
         [JsonProperty("usesMax")]
+        [JsonIgnoreIfEmpty]
         public int? UsesMax { get; set; }
+    }
 
-        [JsonIgnore]
-        public bool IsDeleted { get; set; }
+    public class CreateItemDto : ItemDto { }
 
-        [JsonIgnore]
-        public string? Hash { get; set; }
+    public class UpdateItemDto : ItemDto
+    {
+        [JsonProperty("id")]
+        public Guid Id { get; set; }
+    }
+
+    public class ItemResponseDto : ItemDto
+    {
+        [JsonProperty("id")]
+        public Guid Id { get; set; }
     }
 }

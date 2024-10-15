@@ -8,6 +8,7 @@ namespace DataAccess.Data
     public class DataDbContext : DbContext
     {
         public DbSet<UserEntity> Users { get; set; }
+        public DbSet<ItemEntity> Items { get; set; }
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<InvoiceItemEntity> InvoiceItems { get; set; }
         public DbSet<ExpenseEntity> Expenses { get; set; }

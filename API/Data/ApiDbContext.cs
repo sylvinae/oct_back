@@ -8,6 +8,7 @@ namespace API.Data
     public class ApiDbContext : DbContext
     {
         public DbSet<UserModel> Users { get; set; }
+        public DbSet<ItemModel> Items { get; set; }
         public DbSet<InvoiceModel> Invoices { get; set; }
         public DbSet<InvoiceItemModel> InvoiceItems { get; set; }
         public DbSet<ExpenseModel> Expenses { get; set; }
@@ -15,7 +16,7 @@ namespace API.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=../api/app.db");
+            optionsBuilder.UseSqlite("Data Source=./app.db");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
