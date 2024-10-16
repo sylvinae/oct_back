@@ -6,27 +6,27 @@ namespace API.DTOs
     public class ItemDto
     {
         [JsonProperty("barcode")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Barcode { get; set; }
 
         [JsonProperty("brand")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Brand { get; set; }
 
         [JsonProperty("generic")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Generic { get; set; }
 
         [JsonProperty("classification")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Classification { get; set; }
 
         [JsonProperty("formulation")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Formulation { get; set; }
 
         [JsonProperty("location")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Location { get; set; }
 
         [JsonProperty("wholesale")]
@@ -42,26 +42,26 @@ namespace API.DTOs
         public int LowThreshold { get; set; }
 
         [JsonProperty("company")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Company { get; set; }
 
         [JsonProperty("hasExpiry")]
         public bool HasExpiry { get; set; }
 
         [JsonProperty("expiry")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public string? Expiry { get; set; }
 
         [JsonProperty("isReagent")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public bool IsReagent { get; set; }
 
         [JsonProperty("usesLeft")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public int? UsesLeft { get; set; }
 
         [JsonProperty("usesMax")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public int? UsesMax { get; set; }
     }
 

@@ -23,7 +23,7 @@ namespace API.Models
         public required string Email { get; set; }
 
         [JsonProperty("password")]
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public required string Password { get; set; }
 
         [JsonProperty("role")]
@@ -32,10 +32,10 @@ namespace API.Models
         [JsonIgnore]
         public bool IsDeleted { get; set; }
 
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public ICollection<InvoiceModel> Invoices { get; set; } = [];
 
-        //[JsonIgnoreIfEmpty]
+        [JsonIgnoreIfEmpty]
         public ICollection<ExpenseModel> Expenses { get; set; } = [];
     }
 }
