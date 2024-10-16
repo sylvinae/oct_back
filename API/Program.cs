@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text;
 using API.Data;
+using API.Middlewares;
 using API.Services;
 using API.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.IdentityModel.Tokens;
 
 DotNetEnv.Env.Load();
@@ -19,10 +19,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApiDbContext>();
 
 // Register services
+// Is a mess rn, i'll fix soon promise
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ItemService>();
+builder.Services.AddScoped<RestockService>();
 
 // Newtonsoft.Json Configuration
 builder
@@ -56,6 +58,15 @@ if (!builder.Environment.IsDevelopment()) // Check if not in Development
         });
 }
 
+// Cors
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowAllOrigins",
+        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+    );
+});
+
 // Kestrel Configuration
 var port = DotNetEnv.Env.GetInt("PORT");
 builder.WebHost.ConfigureKestrel(serverOptions =>
@@ -77,12 +88,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors();
-app.UseRouting();
 app.UseHttpsRedirection();
-
+app.UseRouting();
+app.UseCors("AllowAllOrigins"); // Ensure CORS is applied before authentication/authorization
 app.UseAuthentication();
-
 app.UseAuthorization();
 app.MapControllers();
 

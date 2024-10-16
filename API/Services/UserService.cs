@@ -5,6 +5,7 @@ using API.Data;
 using API.DTOs;
 using API.Extensions;
 using API.Models;
+using API.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -65,7 +66,7 @@ namespace API.Services
             if (!password.Verify(hashedPass))
                 return (null, null);
 
-            var jwt = GenerateJwtToken(user);
+            var jwt = Cryptics.GenerateJwtToken(user);
             return (user, jwt);
         }
 
@@ -94,34 +95,6 @@ namespace API.Services
         public async Task<UserModel?> GetUserAsync(Guid UserId)
         {
             return await _db.Users.FindAsync(UserId);
-        }
-
-        private static string GenerateJwtToken(UserModel user)
-        {
-            var key = Encoding.ASCII.GetBytes(
-                DotNetEnv.Env.GetString("JWT_SECRET") ?? "default_strengamabobs"
-            );
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(
-                    [
-                        new Claim(ClaimTypes.Name, user.Email),
-                        new Claim(ClaimTypes.Role, user.Role),
-                        new Claim("UserId", user.Id.ToString()),
-                    ]
-                ),
-                Expires = DateTime.UtcNow.AddHours(10),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature
-                ),
-                Issuer = DotNetEnv.Env.GetString("JWT_ISSUER"),
-                Audience = DotNetEnv.Env.GetString("JWT_AUDIENCE"),
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
         }
     }
 }

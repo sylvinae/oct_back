@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace API.DTOs
 {
-    public class ItemDto
+    public class RestockDto
     {
         [JsonProperty("barcode")]
         //[JsonIgnoreIfEmpty]
@@ -63,17 +63,5 @@ namespace API.DTOs
         [JsonProperty("usesMax")]
         //[JsonIgnoreIfEmpty]
         public int? UsesMax { get; set; }
-    }
-
-    public class UpdateItemDto : ItemDto
-    {
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-    }
-
-    public class ItemResponseDto : ItemDto
-    {
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
     }
 }

@@ -38,14 +38,14 @@ namespace API.DTOs
         public required string FirstName { get; set; }
 
         [JsonProperty("middleName")]
-        [JsonIgnoreIfEmpty]
+        //[JsonIgnoreIfEmpty]
         public string? MiddleName { get; set; }
 
         [JsonProperty("lastName")]
         public required string LastName { get; set; }
 
         [JsonProperty("jwt")]
-        [JsonIgnoreIfEmpty]
+        //[JsonIgnoreIfEmpty]
         public string? Jwt { get; set; }
     }
 
@@ -55,7 +55,7 @@ namespace API.DTOs
         public required string FirstName { get; set; }
 
         [JsonProperty("middleName")]
-        [JsonIgnoreIfEmpty]
+        //[JsonIgnoreIfEmpty]
         public string? MiddleName { get; set; }
 
         [JsonProperty("lastName")]
@@ -70,7 +70,7 @@ namespace API.DTOs
         public required string Email { get; set; }
 
         [JsonProperty("password")]
-        [JsonIgnoreIfEmpty]
+        //[JsonIgnoreIfEmpty]
         public required string Password { get; set; }
     }
 
@@ -81,7 +81,7 @@ namespace API.DTOs
         public required string Email { get; set; }
 
         [JsonProperty("jwt")]
-        [JsonIgnoreIfEmpty]
+        //[JsonIgnoreIfEmpty]
         public string? Jwt { get; set; }
 
         [JsonProperty("firstName")]

@@ -23,7 +23,10 @@ namespace API.Utils
             {
                 property.ShouldSerialize = obj =>
                 {
-                    var value = property.ValueProvider.GetValue(obj);
+                    if (obj == null)
+                        return false; // Ensure obj is not null
+
+                    var value = property.ValueProvider?.GetValue(obj);
                     return !IsEmpty(value);
                 };
             }
@@ -31,7 +34,7 @@ namespace API.Utils
             return property;
         }
 
-        private static bool IsEmpty(object value)
+        private static bool IsEmpty(object? value)
         {
             if (value == null)
                 return true;
@@ -42,9 +45,7 @@ namespace API.Utils
             if (value is ICollection collection)
                 return collection.Count == 0;
 
-            // Add more checks for other types if necessary
-            // Example: Check for arrays or other collection types
-
+            // Add more checks if needed (e.g., arrays)
             return false;
         }
     }

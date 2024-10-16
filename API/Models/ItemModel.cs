@@ -60,5 +60,7 @@ namespace API.Models
 
         [JsonIgnore]
         public string? Hash { get; set; }
+        public bool IsLow { get; set; }
+        public bool IsExpired { get; set; }
     }
 }
