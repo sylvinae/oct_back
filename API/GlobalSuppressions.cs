@@ -12,3 +12,17 @@ using System.Diagnostics.CodeAnalysis;
     Scope = "member",
     Target = "~M:API.Services.ItemService.SearchItems(System.String,System.Int32,System.Int32)~System.Threading.Tasks.Task{System.ValueTuple{API.DTOs.ItemResponseDto[],System.Int32}}"
 )]
+[assembly: SuppressMessage(
+    "Performance",
+    "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons",
+    Justification = "<Pending>",
+    Scope = "member",
+    Target = "~M:API.Services.ItemService.SearchItems(System.String,System.Int32,System.Int32)~System.ValueTuple{System.Linq.IQueryable,System.Int32}"
+)]
+[assembly: SuppressMessage(
+    "Performance",
+    "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons",
+    Justification = "<Pending>",
+    Scope = "member",
+    Target = "~M:API.Services.ItemService.SearchItems(System.String,System.Int32,System.Int32)~System.ValueTuple{System.Linq.IQueryable{API.Models.ItemModel},System.Int32}"
+)]

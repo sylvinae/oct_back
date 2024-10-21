@@ -41,7 +41,7 @@ namespace API.Models
         public string? Company { get; set; }
 
         [JsonProperty("hasExpiry")]
-        public bool HasExpiry { get; set; }
+        public bool HasExpiry { get; set; } = false;
 
         [JsonProperty("expiry")]
         public string? Expiry { get; set; }
@@ -56,11 +56,15 @@ namespace API.Models
         public int? UsesMax { get; set; }
 
         [JsonIgnore]
-        public bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         [JsonIgnore]
         public string? Hash { get; set; }
+
+        [JsonProperty("isLow")]
         public bool IsLow { get; set; }
-        public bool IsExpired { get; set; }
+
+        [JsonIgnore]
+        public bool IsExpired { get; set; } = false;
     }
 }

@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Text.RegularExpressions;
 using API.DTOs;
+using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -21,7 +23,7 @@ namespace API.Controllers
         private readonly AuthService _auth = auth;
 
         [HttpPost("search")]
-        public async Task<IActionResult> SearchItem(
+        public IActionResult SearchItem(
             [FromQuery] string q,
             [FromQuery] int page = 1,
             [FromQuery] int limit = 10
@@ -30,16 +32,22 @@ namespace API.Controllers
             _log.LogInformation("SearchItem called with query: {Query}", q);
             try
             {
+                if (string.IsNullOrWhiteSpace(q))
+                {
+                    return BadRequest(new { message = "Query cannot be empty." });
+                }
+
                 q = MyRegex().Replace(q, "").ToLower();
-                var (result, count) = await _item.SearchItems(q, page, limit);
+                var result = _item.SearchItems(q, page, limit);
+                var count = result.Count();
                 _log.LogInformation("SearchItem completed. Items found: {Count}", count);
 
-                return result.Length > 0
+                return count > 0
                     ? Ok(
                         new
                         {
                             message = "Items found",
-                            items = result,
+                            result,
                             count,
                             page,
                         }
@@ -54,23 +62,19 @@ namespace API.Controllers
         }
 
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllItems(
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 10
-        )
+        public IActionResult GetAllItems([FromQuery] int page = 1, [FromQuery] int limit = 10)
         {
             _log.LogInformation("GetAllItems called.");
             try
             {
-                var (items, count) = await _item.GetAllItems(page, limit);
-                _log.LogInformation("GetAllItems completed. Items count: {Count}", count);
-
+                var items = _item.GetAllItems(page, limit);
+                _log.LogInformation("GetAllItems completed. Found {x} items", items.Count());
                 return Ok(
                     new
                     {
-                        items,
-                        count,
+                        result = items,
                         page,
+                        count = items.Count(),
                     }
                 );
             }
@@ -82,12 +86,12 @@ namespace API.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetItem(Guid id)
+        public IActionResult GetItem(Guid id)
         {
             _log.LogInformation("GetItem called for ID: {Id}", id);
             try
             {
-                var item = await _item.GetItem(id);
+                var item = _item.GetItem(id);
                 if (item != null)
                 {
                     _log.LogInformation("Item found for ID: {Id}", id);
@@ -104,16 +108,12 @@ namespace API.Controllers
         }
 
         [HttpPost("new")]
-        public async Task<IActionResult> CreateItems([FromBody] List<ItemDto> items)
+        public async Task<IActionResult> CreateItems([FromBody] List<ItemModel> items)
         {
-            if (!(items is not IList))
-            {
-                return BadRequest(new { message = "Error: Wrong payload." });
-            }
             _log.LogInformation("CreateItems called with {ItemCount} items.", items.Count);
             try
             {
-                var (createdItems, failedItems) = await _item.CreateItem(items);
+                var (createdItems, failedItems) = await _item.CreateItems(items);
                 _log.LogInformation(
                     "CreateItems completed. Successful: {SuccessCount}, Failed: {FailCount}",
                     createdItems.Count,
@@ -145,7 +145,7 @@ namespace API.Controllers
         }
 
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateItems([FromBody] List<UpdateItemDto> items)
+        public async Task<IActionResult> UpdateItems([FromBody] List<ItemModel> items)
         {
             _log.LogInformation("UpdateItems called with {ItemCount} items.", items.Count);
             try

@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using API.Data;
@@ -14,34 +16,35 @@ namespace API.Services
         private readonly ApiDbContext _db = db;
         private readonly ILogger<ItemService> _log = log;
 
-        public async Task<(List<ItemResponseDto>, List<ItemDto>)> CreateItem(List<ItemDto> items)
+        public async Task<(List<object>, List<object>)> CreateItems(List<ItemModel> items)
         {
             using var transaction = await _db.Database.BeginTransactionAsync();
             try
             {
-                var createdItems = new List<ItemResponseDto>();
-                var failedItems = new List<ItemDto>();
+                var createdItems = new List<object>();
+                var failedItems = new List<object>();
 
-                _log.LogDebug("Starting item creation for {Count} item(s).", items.Count);
                 foreach (var item in items)
                 {
                     try
                     {
-                        var existingItem = await _db.Items.FirstOrDefaultAsync(i =>
-                            i.Hash == Cryptics.ComputeHash(item)
-                        );
+                        var hash = Cryptics.ComputeHash(item);
+                        var existingItem = await _db.Items.FirstOrDefaultAsync(i => i.Hash == hash);
                         if (existingItem != null)
                         {
-                            throw new Exception("Item already exists.");
+                            _log.LogWarning(
+                                "Item already exists: {Brand} - {Generic}.",
+                                item.Brand,
+                                item.Generic
+                            );
+                            failedItems.Add(item);
+                            continue;
                         }
 
-                        var newItem = PropCopier.Copy(
-                            item,
-                            new ItemModel { Hash = Cryptics.ComputeHash(item) }
-                        );
-                        await _db.Items.AddAsync(newItem);
-                        createdItems.Add(PropCopier.Copy(newItem, new ItemResponseDto()));
-                        _log.LogInformation("Created item with ID {ItemId}.", newItem.Id);
+                        item.Hash = hash;
+                        var result = await _db.Items.AddAsync(item);
+                        createdItems.Add(result.Entity);
+                        _log.LogInformation("Created item with ID {ItemId}.", result.Entity.Id);
                     }
                     catch (Exception ex)
                     {
@@ -68,23 +71,11 @@ namespace API.Services
             }
         }
 
-        public async Task<(List<ItemResponseDto>?, int)> GetAllItems(int page, int limit)
+        public IQueryable<ItemModel> GetAllItems(int page, int limit)
         {
-            _log.LogDebug("Fetching items: Page {Page}, Limit {Limit}.", page, limit);
             try
             {
-                var items = await _db
-                    .Items.Where(i => !i.IsDeleted)
-                    .Skip((page - 1) * limit)
-                    .Take(limit)
-                    .ToListAsync();
-
-                var response = items
-                    .Select(i => PropCopier.Copy(i, new ItemResponseDto()))
-                    .ToList();
-
-                _log.LogInformation("Fetched {Count} items.", items.Count);
-                return (response, items.Count);
+                return _db.Items.Where(i => !i.IsDeleted).Skip((page - 1) * limit).Take(limit);
             }
             catch (Exception ex)
             {
@@ -93,20 +84,11 @@ namespace API.Services
             }
         }
 
-        public async Task<ItemResponseDto?> GetItem(Guid id)
+        public async Task<ItemModel?> GetItem(Guid id)
         {
-            _log.LogDebug("Fetching item with ID {ItemId}.", id);
             try
             {
-                var item = await _db.Items.FindAsync(id);
-                if (item == null)
-                {
-                    _log.LogWarning("Item with ID {ItemId} not found.", id);
-                    return null;
-                }
-
-                _log.LogDebug("Fetched item with ID {ItemId}.", id);
-                return PropCopier.Copy(item, new ItemResponseDto());
+                return await _db.Items.FirstOrDefaultAsync(i => i.IsDeleted == false && i.Id == id);
             }
             catch (Exception ex)
             {
@@ -115,13 +97,11 @@ namespace API.Services
             }
         }
 
-        public async Task<(List<ItemResponseDto>, List<UpdateItemDto>)> UpdateItems(
-            List<UpdateItemDto> items
-        )
+        public async Task<(List<object>, List<object>)> UpdateItems(List<ItemModel> items)
         {
             _log.LogDebug("Starting update for {Count} item(s).", items.Count);
-            var updatedItems = new List<ItemResponseDto>();
-            var failedItems = new List<UpdateItemDto>();
+            var updatedItems = new List<object>();
+            var failedItems = new List<object>();
 
             using var transaction = await _db.Database.BeginTransactionAsync();
             try
@@ -133,7 +113,7 @@ namespace API.Services
                     {
                         _log.LogInformation("Updating item with ID {ItemId}.", existingItem.Id);
                         _db.Entry(existingItem).CurrentValues.SetValues(item);
-                        updatedItems.Add(PropCopier.Copy(existingItem, new ItemResponseDto()));
+                        updatedItems.Add(existingItem);
                     }
                     else
                     {
@@ -192,26 +172,17 @@ namespace API.Services
             }
         }
 
-        public async Task<(ItemResponseDto[], int)> SearchItems(string query, int page, int limit)
+        public IQueryable<ItemModel> SearchItems(string query, int page, int limit)
         {
-            _log.LogDebug(
-                "Searching items with query '{Query}', Page {Page}, Limit {Limit}.",
-                query,
-                page,
-                limit
-            );
             try
             {
-                var items = await _db
+                var items = _db
                     .Items.Where(i => (i.Brand ?? "").ToLower().Contains(query) && !i.IsDeleted)
                     .OrderBy(i => i.Id)
                     .Skip((page - 1) * limit)
-                    .Take(limit)
-                    .ToListAsync();
+                    .Take(limit);
 
-                var result = items.Select(i => PropCopier.Copy(i, new ItemResponseDto())).ToArray();
-                _log.LogInformation("Found {Count} matching item(s).", items.Count);
-                return (result, items.Count);
+                return items;
             }
             catch (Exception ex)
             {
